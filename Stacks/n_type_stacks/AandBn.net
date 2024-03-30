@@ -1,0 +1,65 @@
+*cfr3-BandAn -- Indipendent signal generators and Vdd power supply
+*(AandB)n for all combinations of input.
+
+.INCLUDE 32nm_MGK.pm
+
+* Set ngspice options
+.OPTIONS GMIN=1e-020 ABSTOL=1e-18 
+
+
+*Definizione dei parametri 	
+.PARAM Lmin=32n
+.PARAM N=1
+.PARAM Wmin=32n
+.PARAM Ldiff=64n
+
+Vdd 	vgen 	0 
+Va 	A 	0 	
+Vb 	B 	0 
+
+Mn1 	SD1 	A 	0 	0 	nmos W={Wmin} L={Lmin} AS={Wmin*Ldiff} AD={Wmin*Ldiff} PS={2*(Ldiff+Wmin)} PD={2*(Ldiff+Wmin)}
+Mn2 	vgen 	B 	SD1 	0 	nmos  W={Wmin} L={Lmin} AS={Wmin*Ldiff} AD={Wmin*Ldiff} PS={2*(Ldiff+Wmin)} PD={2*(Ldiff+Wmin)}
+
+
+.CONTROL
+let Vddbasic= 0
+let width=32n
+echo width = $width
+echo Vddbasic = $Vddbasic
+*$variable_name = value of the variable. Echo command is for printing. So we are printing Vddbasic = value.
+alter Vdd = Vddbasic
+foreach width 32n 64n 96n 128n 192n 256n
+	echo width=N*Wmin
+	echo $width
+	let L=32n
+
+	alter Mn1 W {$width}
+	alter Mn1 AS {$width* L} 
+	alter Mn1 AD {$width* L}
+	alter Mn1 PS {2*($width + L)}
+	alter Mn1 PD {2*($width + L)}
+
+	alter Mn2 W {$width} 
+	alter Mn2 AS {$width* L} 
+	alter Mn2 AD {$width* L}
+	alter Mn2 PS {2*($width + L)}
+	alter Mn2 PD {2*($width + L)}
+
+
+	foreach input 0 0.9
+		alter Va = $input
+        foreach input 0 0.9
+            alter Vb = $input
+                *if not(@Vdd[DC] & @Va[DC] & @Vb[DC] )
+        
+            dc TEMP 25 50 26
+            print $width V(vgen) V(A) V(B) V(SD1) 
+            wrdata 32nm_LP_nstack_AandBn $width V(vgen) V(A) V(B) V(SD1) 
+            set appendwrite
+
+        end	   
+	end
+end
+	
+.ENDC
+.END

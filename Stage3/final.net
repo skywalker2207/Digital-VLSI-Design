@@ -1,0 +1,117 @@
+.INCLUDE 32nm_MGK.pm
+.OPTIONS GMIN=1e-020 ABSTOL=1e-18
+
+.param Lmin=32n
+.param Wmin=32n
+.param Ldiff=64n
+.param vdd = 0.9
+.param gnd = 0
+.temp 25
+
+.SUBCKT AND A0 A1 out vddrail gndrail 
+
+    Mp1 D1 A0 vddrail vddrail pmos W={2*Wmin} L={Lmin} AS={Wmin*Ldiff} AD={Wmin*Ldiff} PS={2*(Ldiff+Wmin)} PD={2*(Ldiff+Wmin)}
+    Mp2 D1 A1 vddrail vddrail pmos W={2*Wmin} L={Lmin} AS={Wmin*Ldiff} AD={Wmin*Ldiff} PS={2*(Ldiff+Wmin)} PD={2*(Ldiff+Wmin)}
+    Mp3 out D1 vddrail vddrail pmos W={2*Wmin} L={Lmin} AS={2*Wmin*Ldiff} AD={2*Wmin*Ldiff} PS={2*(Ldiff+2*Wmin)} PD={2*(Ldiff+2*Wmin)}
+
+    Mn1 D1 A0 S1 S1 nmos W={Wmin} L={Lmin} AS={2*Wmin*Ldiff} AD={2*Wmin*Ldiff} PS={2*(Ldiff+2*Wmin)} PD={2*(Ldiff+2*Wmin)}
+    Mn2 S1 A1 gndrail gndrail nmos W={Wmin} L={Lmin} AS={2*Wmin*Ldiff} AD={2*Wmin*Ldiff} PS={2*(Ldiff+2*Wmin)} PD={2*(Ldiff+2*Wmin)}
+    Mn3 out D1 gndrail gndrail nmos W={Wmin} L={Lmin} AS={Wmin*Ldiff} AD={Wmin*Ldiff} PS={2*(Ldiff+Wmin)} PD={2*(Ldiff+Wmin)}
+
+.ENDS
+
+.SUBCKT NOT A0 out vddrail gndrail
+
+    Mp1 out A0 vddrail vddrail pmos W={2*Wmin} L={Lmin} AS={2*Wmin*Ldiff} AD={2*Wmin*Ldiff} PS={2*(Ldiff+2*Wmin)} PD={2*(Ldiff+2*Wmin)}
+    Mn1 out A0 gndrail gndrail nmos W={Wmin} L={Lmin} AS={Wmin*Ldiff} AD={Wmin*Ldiff} PS={2*(Ldiff+Wmin)} PD={2*(Ldiff+Wmin)}
+
+.ENDS
+
+.SUBCKT NOR A0 A1 out vddrail gndrail
+
+    Mp1 Dp1 A0 vddrail vddrail pmos W={8*Wmin} L={Lmin} AS={8*Wmin*Ldiff} AD={8*Wmin*Ldiff} PS={2*(Ldiff+8*Wmin)} PD={2*(Ldiff+8*Wmin)}
+    Mp2 out A1 Dp1 Dp1 pmos W={8*Wmin} L={Lmin} AS={8*Wmin*Ldiff} AD={8*Wmin*Ldiff} PS={2*(Ldiff+8*Wmin)} PD={2*(Ldiff+8*Wmin)}
+
+    Mn1 out A0 gndrail gndrail  nmos W={Wmin} L={Lmin} AS={Wmin*Ldiff} AD={Wmin*Ldiff} PS={2*(Ldiff+Wmin)} PD={2*(Ldiff+Wmin)}
+    Mn2 out A1 gndrail gndrail  nmos W={Wmin} L={Lmin} AS={Wmin*Ldiff} AD={Wmin*Ldiff} PS={2*(Ldiff+Wmin)} PD={2*(Ldiff+Wmin)}
+
+.ENDS
+
+.SUBCKT OR A0 A1 out vddrail gndrail 
+
+    Mp1 Dp1 A0 vddrail vddrail pmos W={8*Wmin} L={Lmin} AS={8*Wmin*Ldiff} AD={8*Wmin*Ldiff} PS={2*(Ldiff+8*Wmin)} PD={2*(Ldiff+8*Wmin)}
+    Mp2 D1 A1 Dp1 Dp1 pmos W={8*Wmin} L={Lmin} AS={8*Wmin*Ldiff} AD={8*Wmin*Ldiff} PS={2*(Ldiff+8*Wmin)} PD={2*(Ldiff+8*Wmin)}
+    Mp3 out D1 vddrail vddrail pmos W={2*Wmin} L={Lmin} AS={2*Wmin*Ldiff} AD={2*Wmin*Ldiff} PS={2*(Ldiff+2*Wmin)} PD={2*(Ldiff+2*Wmin)}
+
+    Mn1 D1 A0 gndrail gndrail  nmos W={Wmin} L={Lmin} AS={Wmin*Ldiff} AD={Wmin*Ldiff} PS={2*(Ldiff+Wmin)} PD={2*(Ldiff+Wmin)}
+    Mn2 D1 A1 gndrail gndrail  nmos W={Wmin} L={Lmin} AS={Wmin*Ldiff} AD={Wmin*Ldiff} PS={2*(Ldiff+Wmin)} PD={2*(Ldiff+Wmin)}
+    Mn3 out D1 gndrail gndrail nmos W={Wmin} L={Lmin} AS={Wmin*Ldiff} AD={Wmin*Ldiff} PS={2*(Ldiff+Wmin)} PD={2*(Ldiff+Wmin)}
+
+.ENDS
+
+XAND1 P0 G0 w1 vddrail gndrail AND
+XNOT1 Cn w2 vddrail gndrail NOT
+XAND2 G0 w2 w3 vddrail gndrail AND
+XNOR1 w1 w3 cnx vddrail gndrail NOR
+
+XAND3 P1 G1 w4 vddrail gndrail AND
+XAND17 P0 G0 w23 vddrail gndrail AND
+XAND4 w23 G1 w5 vddrail gndrail AND
+XAND18 G0 w2 w24 vddrail gndrail AND
+XAND5 w24 G1 w6 vddrail gndrail AND
+XOR1 w4 w5 w7 vddrail gndrail OR
+XNOR2 w7 w6 cny vddrail gndrail NOR
+
+XAND6 P2 G2 w8 vddrail gndrail AND
+XAND19 P1 G1 w25 vddrail gndrail AND
+XAND7 w25 G2 w9 vddrail gndrail AND
+XAND8 G1 G2 w10 vddrail gndrail AND
+XAND20 P0 G0 w26 vddrail gndrail AND
+XAND9 w26 w10 w11 vddrail gndrail AND
+XAND21 G0 w2 w27 vddrail gndrail AND
+XAND10 w27 w10 w12 vddrail gndrail AND
+XOR3 w8 w9 w13 vddrail gndrail OR
+XOR4 w11 w12 w14 vddrail gndrail OR
+XNOR3 w13 w14 cnz vddrail gndrail OR
+
+XAND11 P3 G3 w15 vddrail gndrail AND
+XAND22 P2 G2 w28 vddrail gndrail AND
+XAND12 w28 G3 w16 vddrail gndrail AND
+XAND13 P1 G3 w17 vddrail gndrail AND
+XAND23 G1 G2 w29 vddrail gndrail AND
+XAND14 w17 w29 w18 vddrail gndrail AND
+XAND15 G0 G3 w19 vddrail gndrail AND
+XAND16 w29 w19 w20 vddrail gndrail AND
+XOR5 w15 w16 w21 vddrail gndrail OR
+XOR6 w18 w20 w22 vddrail gndrail OR
+XOR7 w21 w22 G vddrail gndrail OR
+
+XOR8 P0 P1 w30 vddrail gndrail OR
+XOR9 P2 P3 w31 vddrail gndrail OR
+XOR10 w30 w31 P vddrail gndrail OR
+
+
+
+VP0 P0 0 0
+VP1 P1 0 0
+VP2 P2 0 0
+VP3 P3 0 0
+
+VG0 G0 0 0
+VG1 G1 0 0
+VG2 G2 0 0
+VG3 G3 0 0
+
+VCn Cn 0 0
+
+VD vddrail 0 0.9
+Vgnd gndrail 0 0
+
+
+.control
+op
+let leakage_sub = abs(I(Vgnd))
+let leakage_gate = (abs(I(VP0))+abs(I(VP1))+abs(I(VP2))+abs(I(VP3))+abs(I(VG0))+abs(I(VG1))+abs(I(VG2))+abs(I(VG3))+abs(I(VCn)))
+print leakage_sub leakage_gate V(G0) V(G1) V(G2) V(G3) V(P0) V(P1) V(P2) V(P3) V(P) V(G) V(cnz) V(cny) V(cnx)
+.endc
+.end

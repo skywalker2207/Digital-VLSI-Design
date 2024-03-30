@@ -1,0 +1,39 @@
+.include 32nm_MGK.pm
+.options GMIN=1e-020 ABSTOL=1e-18
+
+.param Lmin=32n
+.param Wmin=32n
+.param Ldiff=64n
+
+M1 D1 G1 S1 B1 pmos W={Wmin} L={Lmin} AS={Wmin*Ldiff} AD={Wmin*Ldiff} PS={2*(Ldiff+Wmin)} PD={2*(Ldiff+Wmin)}
+M2 D2 G2 D1 B2 pmos W={Wmin} L={Lmin} AS={Wmin*Ldiff} AD={Wmin*Ldiff} PS={2*(Ldiff+Wmin)} PD={2*(Ldiff+Wmin)}
+Vd 	D2	  0    0.9
+Vg1 	G1	  0	0
+Vg2 	G2	  0	0
+Vs 	S1	0		  0.9
+Vb1 	B1	  S1		  0
+Vb2 	B2	  D1		  0
+
+
+.control
+echo "" > pmos_00.txt
+foreach Win 32n 64n 96n 128n 192n 256n
+    alter M1 W {$Win}
+	alter M1 AS {$Win* L} 
+	alter M1 AD {$Win* L}
+	alter M1 PS {2*($Win + L)}
+	alter M1 PD {2*($Win + L)}
+
+	alter M2 W {$Win} 
+	alter M2 AS {$Win* L} 
+	alter M2 AD {$Win* L}
+	alter M2 PS {2*($Win + L)}
+	alter M2 PD {2*($Win + L)}
+    dc TEMP 25 50 26
+    let i1 = @M1[W]
+    let i2 = @M2[W]
+    print @M1[W] @M2[W] V(D1) V(S1) V(G1) V(G2) V(D1) V(B1) V(B2) I(Vd) I(Vg1) I(Vg2) I(Vs) I(Vb1) I(Vb2)
+    echo "25" "$&i1" "$&V(D1)" "$&V(S1)" "$&V(G1)" "$&V(B1)" "$&i2" "$&V(D2)" "$&V(D1)" "$&V(G2)" "$&V(B2)" >> pmos_00.txt
+end
+.endc
+.end
